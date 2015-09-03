@@ -22,7 +22,7 @@ scriptVersion="1.0"											# script version
 scriptName="$(basename ${0})"								# script name
 ymdDate="$(date '+%Y%m%d')"									# sane date
 
-baseDir="/home/boottedd/bin/sshtool"						# base directory
+baseDir="/home/boottedd/git/bash/sshtool"					# base directory
 binDir="${baseDir}/scripts"									# scripts / bin directory
 logDir="${baseDir}/logs"									# log directory
 tmpDir="${baseDir}/temp"									# temp directory
