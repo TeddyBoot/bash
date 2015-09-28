@@ -161,7 +161,7 @@ function _determineServerName () {
 function _sshConnect() {
 	_determinePort
 	_determineServerName
-	sshParameters="${userNames[$userID]}@${servName}.${serverDomain}"
+	sshParameters="-X ${userNames[$userID]}@${servName}.${serverDomain}"
 	[[ -z ${portNr} ]] || sshParameters="$sshParameters -p ${portNr}"
 	clear
 	#echo "${SSH} ${sshParameters}"
