@@ -200,7 +200,7 @@ _checkConfig
 _parseConfig
 
 # select the server to connect to 
-if [ "${showList}" == "list" ]; then
+if [ "${serverList}" == "list" ]; then
 	echo "Select a server"
 	_showList server
 	echo -n "Enter choice (1/2/...) "
