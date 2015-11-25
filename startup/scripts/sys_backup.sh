@@ -22,7 +22,7 @@
 # -- script related
 scriptVersion="1.0.0"                                   # script version
 scriptName="$(basename ${0})"                           # script name
-ymdDate="$(date '+%Y%m%d%H%M')"                         # sane date
+ymdDate="$(date '+%Y%m%d')"                             # date for in scripts
 
 # -- script directories
 baseDir="/home/boottedd/git/bash/startup"               # base directory
@@ -32,7 +32,7 @@ cfgDir="${baseDir}/conf"                                # configuration director
 
 # -- script specific
 curUser="$(/usr/bin/whoami)"
-dirList="
+dirListHome="
 bin
 Desktop
 Documents
@@ -41,11 +41,11 @@ Dropbox
 git
 Music
 Pictures
-Videos
-work"
-originalDir="~/"
-destinationDir="/run/media/${curUser}/LacieExt/BackupFolder/"
-
+Videos"
+dirListVar="html"
+dirListWork="work"
+dirListDb="databases"
+destinationDir="/run/media/${curUser}/LacieExt/BackupFolder"
 
 # -------------------------------------------------------------------------- #
 # --- Functions ---
@@ -57,39 +57,75 @@ destinationDir="/run/media/${curUser}/LacieExt/BackupFolder/"
 # Input    : List of directories
 # Output   : Execution of command(s) on list of directories
 # ------------------------------------------------------------------ #
+function _cycleDirs() {
+	case $1 in
+		home)
+			originalDir="/home/boottedd"
+			listName="${dirListHome}"
+			destDir="${destinationDir}/home"
+			;;
+		var)
+			originalDir="/var/www"
+			listName="${dirListVar}"
+			destDir="${destinationDir}/var"
+			;;
+		work)
+			originalDir="/home"
+			listName="${dirListWork}"
+			destDir="${destinationDir}/work"
+			;;
+		db)
+			originalDir=""
+			listName="${dirListDb}"
+			destDir="${destinationDir}"
+			;;
+	esac
+	for dirRun in ${listName}; do
+		# execute commands
+		_commandExec $dirRun
+		echo "${command} ${originalDir}/$dirRun ${destDir}"
+		${command} ${originalDir}/$dirRun ${destDir}
+	done
+}
+
+# ------------------------------------------------------------------ #
+# Function : _commandExec
+# Syntax   : _commandExec <directory>
+# Input    : file or directory
+# Output   : Command(s) with parameters to be executed
+# ------------------------------------------------------------------ #
 function _commandExec() {
 	# Find all commands to be executed per directory
-	if [ -d "${destinationDir}/$1" ]; then
-		echo "This is a Directory and exists: ${destinationDir}/$1"
-		command="rsync"
-	else
-		echo "This is NOT a Directory or does NOT exists: ${destinationDir}$1"
-		command="cp -Rf"
+	if [ -d "${destDir}" ]; then
+		#echo "This is a Directory and exists: ${destinationDir}/$1"
+		command="rsync -h -r -P -t --copy-links"
 	fi
 }
 
 # ------------------------------------------------------------------ #
-# Function : _cycleDirs
-# Syntax   : _cycleDirs <dirList>
-# Input    : List of directories
-# Output   : Execution of command(s) on list of directories
+# Function : _backupDb
+# Syntax   : _bacupDb
+# Input    : <none>
+# Output   : database backup in sql file format
 # ------------------------------------------------------------------ #
-function _cycleDirs() {
-	for dirRun in ${dirList}; do
-		# execute commands
-		_commandExec $dirRun
-		echo "${command} ${originalDir}$dirRun ${destinationDir}$dirRun"
-		${command} ${originalDir}$dirRun ${destinationDir}$dirRun
-	done
+function _backupDb () {
+	echo "Creating a backup of the database: /${dirListDb}/localhost_${ymdDate}.sql"
+	mysqldump -u root --password="C007mac!" --all-databases > /${dirListDb}/localhost_${ymdDate}.sql
 }
 
 # -------------------------------------------------------------------------- #
 # --- Main ---
 # -------------------------------------------------------------------------- #
 
-# Copy or use Rsync to copy all files from ~/
+# Make database backup
+_backupDb
 
-#cp -Rf ~/ /run/media/${curUser}/LacieExt/BackupFolder/
+# use rsync to backup all directories
+_cycleDirs home
 
-# Testing part. should be deleted after first complete version
-_cycleDirs
+_cycleDirs var
+
+_cycleDirs work
+
+# Copy database backup
+_cycleDirs db
